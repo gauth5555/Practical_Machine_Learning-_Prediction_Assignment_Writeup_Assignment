@@ -10,7 +10,7 @@ R Libraries are uploaded to complete the analysis
 install.packages("https://cran.r-project.org/bin/windows/contrib/3.3/RGtk2_2.20.31.zip", repos=NULL)
 install.packages("e1071")
 
-rm(list=ls())                # To ree up memory for the
+rm(list=ls())                # To free up memory for the
 library(knitr)
 library(caret)
 library(rpart)
