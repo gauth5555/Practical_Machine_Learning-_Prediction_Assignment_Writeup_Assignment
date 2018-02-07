@@ -37,10 +37,16 @@ NewTest  <- read.csv(url(TestingURL))
 inTrain  <- createDataPartition(NewTrain$classe, p=0.7, list=FALSE)
 Training <- NewTrain[inTrain, ]
 Testing  <- NewTrain[-inTrain, ]
-> dim(TrainSet)
+dim(TrainSet)
 ```
 ```r
 13737   160
+```
+```r
+dim(TestSet)
+```
+```r
+5885  160
 ```
 
 ## Remove variables with Nearly Zero Variance
