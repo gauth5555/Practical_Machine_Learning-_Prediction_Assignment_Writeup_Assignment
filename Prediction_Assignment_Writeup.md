@@ -2,17 +2,15 @@
 Goutham Manghnani
 Feb 02, 2018  
 
-## Pre-processing Data
-Several columns of the raw data set have string contaning nothing, so we delete those columns first, and we also delete the first 7 columns: X, user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window, num_window. These features are obviously not related to predict the outcome.
-
+## 1. Environment Preparation
+R Libraries are uploaded to complete the analysis
 
 ```r
 
 install.packages("https://cran.r-project.org/bin/windows/contrib/3.3/RGtk2_2.20.31.zip", repos=NULL)
 install.packages("e1071")
 
-rm(list=ls())                # free up memory for the download of the data sets
-setwd("~/Cursos/Data Science/08 Practical Machine Learning/Projeto")
+rm(list=ls())                # To ree up memory for the
 library(knitr)
 library(caret)
 library(rpart)
@@ -22,6 +20,7 @@ library(randomForest)
 library(corrplot)
 library(rpart.plot)
 ```
+## 2. Loading of Data
 
 ```r
 set.seed(12463)
@@ -48,6 +47,8 @@ dim(TestSet)
 ```r
 5885  160
 ```
+
+## 3. Data Cleaning
 
 ## Remove variables with Nearly Zero Variance
 
@@ -91,6 +92,10 @@ corrplot(correlationMatrix, order = "FPC", method = "color", type = "lower",
          tl.cex = 0.8, tl.col = rgb(0, 0, 0))
 ```
 
+The variable that are highly correlated are displayed in dark colors in the graph above. To make an evem more better analysis, a PCA (Principal Components Analysis) is performed as pre-processing step to the datasets. As the correlations are quite few, this step will not be applied for this assignment.
+
+## Prediction Model Building
+
 # Decision Tree - Model fit
 
 ```r
@@ -110,37 +115,37 @@ confMatDecisionTree
 ```
 
 ```r
-Confusion Matrix and Statistics
-
-          Reference
-Prediction    A    B    C    D    E
-         A 1672    5    0    0    0
-         B    1 1131    3    0    0
-         C    0    3 1022    2    0
-         D    0    0    1  961    0
-         E    1    0    0    1 1082
-
-Overall Statistics
-                                          
-               Accuracy : 0.9971          
-                 95% CI : (0.9954, 0.9983)
-    No Information Rate : 0.2845          
-    P-Value [Acc > NIR] : < 2.2e-16       
-                                          
-                  Kappa : 0.9963          
- Mcnemar's Test P-Value : NA              
-
-Statistics by Class:
-
-                     Class: A Class: B Class: C Class: D Class: E
-Sensitivity            0.9988   0.9930   0.9961   0.9969   1.0000
-Specificity            0.9988   0.9992   0.9990   0.9998   0.9996
-Pos Pred Value         0.9970   0.9965   0.9951   0.9990   0.9982
-Neg Pred Value         0.9995   0.9983   0.9992   0.9994   1.0000
-Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
-Detection Rate         0.2841   0.1922   0.1737   0.1633   0.1839
-Detection Prevalence   0.2850   0.1929   0.1745   0.1635   0.1842
-Balanced Accuracy      0.9988   0.9961   0.9975   0.9983   0.9998
+##Confusion Matrix and Statistics
+##
+##          Reference
+##Prediction    A    B    C    D    E
+##         A 1672    5    0    0    0
+##         B    1 1131    3    0    0
+##         C    0    3 1022    2    0
+##         D    0    0    1  961    0
+##         E    1    0    0    1 1082
+##
+##Overall Statistics
+##                                          
+##               Accuracy : 0.9971          
+##                 95% CI : (0.9954, 0.9983)
+##    No Information Rate : 0.2845          
+##    P-Value [Acc > NIR] : < 2.2e-16       
+##                                          
+##                  Kappa : 0.9963          
+## Mcnemar's Test P-Value : NA              
+##
+##Statistics by Class:
+##
+##                     Class: A Class: B Class: C Class: D Class: E
+##Sensitivity            0.9988   0.9930   0.9961   0.9969   1.0000
+##Specificity            0.9988   0.9992   0.9990   0.9998   0.9996
+##Pos Pred Value         0.9970   0.9965   0.9951   0.9990   0.9982
+##Neg Pred Value         0.9995   0.9983   0.9992   0.9994   1.0000
+##Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
+##Detection Rate         0.2841   0.1922   0.1737   0.1633   0.1839
+##Detection Prevalence   0.2850   0.1929   0.1745   0.1635   0.1842
+##Balanced Accuracy      0.9988   0.9961   0.9975   0.9983   0.9998
 ```
 # plot matrix results
 
@@ -161,19 +166,19 @@ modleFitRandForest$finalModel
 ```
 
 ```R
-randomForest(x = x, y = y, mtry = param$mtry) 
-               Type of random forest: classification
-                     Number of trees: 500
-No. of variables tried at each split: 27
-
-        OOB estimate of  error rate: 0.24%
-Confusion matrix:
-     A    B    C    D    E class.error
-A 3906    0    0    0    0 0.000000000
-B    5 2650    2    1    0 0.003009782
-C    0    6 2389    1    0 0.002921536
-D    0    0   11 2240    1 0.005328597
-E    0    0    0    6 2519 0.002376238
+##randomForest(x = x, y = y, mtry = param$mtry) 
+##               Type of random forest: classification
+##                     Number of trees: 500
+##No. of variables tried at each split: 27
+##
+##        OOB estimate of  error rate: 0.24%
+##Confusion matrix:
+##     A    B    C    D    E class.error
+##A 3906    0    0    0    0 0.000000000
+##B    5 2650    2    1    0 0.003009782
+##C    0    6 2389    1    0 0.002921536
+##D    0    0   11 2240    1 0.005328597
+##E    0    0    0    6 2519 0.002376238
 ```
 
 # prediction on Test dataset
@@ -184,37 +189,37 @@ confMatRandomForest <- confusionMatrix(predictRandomForest, Testing$classe)
 confMatRandomForest
 ```
 ```r
-Confusion Matrix and Statistics
-
-          Reference
-Prediction    A    B    C    D    E
-         A 1452  226   23  106   99
-         B   33  641   71   33   89
-         C   10   56  809  150   64
-         D  137  184   92  643  128
-         E   42   32   31   32  702
-
-Overall Statistics
-                                        
-               Accuracy : 0.7217        
-                 95% CI : (0.71, 0.7331)
-    No Information Rate : 0.2845        
-    P-Value [Acc > NIR] : < 2.2e-16     
-                                        
-                  Kappa : 0.6468        
- Mcnemar's Test P-Value : < 2.2e-16     
-
-Statistics by Class:
-
-                     Class: A Class: B Class: C Class: D Class: E
-Sensitivity            0.8674   0.5628   0.7885   0.6670   0.6488
-Specificity            0.8922   0.9524   0.9424   0.8901   0.9715
-Pos Pred Value         0.7618   0.7393   0.7429   0.5431   0.8367
-Neg Pred Value         0.9442   0.9008   0.9548   0.9317   0.9247
-Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
-Detection Rate         0.2467   0.1089   0.1375   0.1093   0.1193
-Detection Prevalence   0.3239   0.1473   0.1850   0.2012   0.1426
-Balanced Accuracy      0.8798   0.7576   0.8654   0.7785   0.8101
+##Confusion Matrix and Statistics
+##
+##          Reference
+##Prediction    A    B    C    D    E
+##         A 1452  226   23  106   99
+##         B   33  641   71   33   89
+##         C   10   56  809  150   64
+##         D  137  184   92  643  128
+##         E   42   32   31   32  702
+##
+##Overall Statistics
+##                                        
+##               Accuracy : 0.7217        
+##                 95% CI : (0.71, 0.7331)
+##    No Information Rate : 0.2845        
+##    P-Value [Acc > NIR] : < 2.2e-16     
+##                                        
+##                  Kappa : 0.6468        
+## Mcnemar's Test P-Value : < 2.2e-16     
+##
+##Statistics by Class:
+##
+##                     Class: A Class: B Class: C Class: D Class: E
+##Sensitivity            0.8674   0.5628   0.7885   0.6670   0.6488
+##Specificity            0.8922   0.9524   0.9424   0.8901   0.9715
+##Pos Pred Value         0.7618   0.7393   0.7429   0.5431   0.8367
+##Neg Pred Value         0.9442   0.9008   0.9548   0.9317   0.9247
+##Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
+##Detection Rate         0.2467   0.1089   0.1375   0.1093   0.1193
+##Detection Prevalence   0.3239   0.1473   0.1850   0.2012   0.1426
+##Balanced Accuracy      0.8798   0.7576   0.8654   0.7785   0.8101
 ```
 
 # plot matrix results
@@ -251,40 +256,40 @@ confMatGBoostingM
 
 ```
 ```r
-Confusion Matrix and Statistics
-
-          Reference
-Prediction    A    B    C    D    E
-         A 1668    8    0    0    0
-         B    6 1115   16    5    0
-         C    0   14 1005    9    2
-         D    0    2    4  949   11
-         E    0    0    1    1 1069
-
-Overall Statistics
-                                          
-               Accuracy : 0.9866          
-                 95% CI : (0.9833, 0.9894)
-    No Information Rate : 0.2845          
-    P-Value [Acc > NIR] : < 2.2e-16       
-                                          
-                  Kappa : 0.983           
- Mcnemar's Test P-Value : NA              
-
-Statistics by Class:
-
-                     Class: A Class: B Class: C Class: D Class: E
-Sensitivity            0.9964   0.9789   0.9795   0.9844   0.9880
-Specificity            0.9981   0.9943   0.9949   0.9965   0.9996
-Pos Pred Value         0.9952   0.9764   0.9757   0.9824   0.9981
-Neg Pred Value         0.9986   0.9949   0.9957   0.9970   0.9973
-Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
-Detection Rate         0.2834   0.1895   0.1708   0.1613   0.1816
-Detection Prevalence   0.2848   0.1941   0.1750   0.1641   0.1820
-Balanced Accuracy      0.9973   0.9866   0.9872   0.9905   0.9938
+##Confusion Matrix and Statistics
+##
+##          Reference
+##Prediction    A    B    C    D    E
+##         A 1668    8    0    0    0
+##         B    6 1115   16    5    0
+##         C    0   14 1005    9    2
+##         D    0    2    4  949   11
+##         E    0    0    1    1 1069
+##
+##Overall Statistics
+##                                          
+##               Accuracy : 0.9866          
+##                 95% CI : (0.9833, 0.9894)
+##    No Information Rate : 0.2845          
+##    P-Value [Acc > NIR] : < 2.2e-16       
+##                                          
+##                  Kappa : 0.983           
+## Mcnemar's Test P-Value : NA              
+##
+##Statistics by Class:
+##
+##                     Class: A Class: B Class: C Class: D Class: E
+##Sensitivity            0.9964   0.9789   0.9795   0.9844   0.9880
+##Specificity            0.9981   0.9943   0.9949   0.9965   0.9996
+##Pos Pred Value         0.9952   0.9764   0.9757   0.9824   0.9981
+##Neg Pred Value         0.9986   0.9949   0.9957   0.9970   0.9973
+##Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
+##Detection Rate         0.2834   0.1895   0.1708   0.1613   0.1816
+##Detection Prevalence   0.2848   0.1941   0.1750   0.1641   0.1820
+##Balanced Accuracy      0.9973   0.9866   0.9872   0.9905   0.9938
 ```
 
-# plot matrix results
+# Plotting matrix results
 ```r
 plot(confMatGBoostingM$table, col = confMatGBoostingM$byClass, 
      main = paste("GBM - Accuracy =", round(confMatGBoostingM$overall['Accuracy'], 4)))
@@ -293,6 +298,6 @@ predictTEST <- predict(modleFitRandForest, newdata=NewTest)
 predictTEST
 ```
 ```r
- [1] B A B A A E D B A A B C B A E E A B B B
-Levels: A B C D E
+##[1] B A B A A E D B A A B C B A E E A B B B
+##Levels: A B C D E
 ```
