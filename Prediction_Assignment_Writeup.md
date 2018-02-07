@@ -7,88 +7,147 @@ Several columns of the raw data set have string contaning nothing, so we delete 
 
 
 ```r
-library(caret)
-```
 
-```
-## Loading required package: lattice
-## Loading required package: ggplot2
+install.packages("https://cran.r-project.org/bin/windows/contrib/3.3/RGtk2_2.20.31.zip", repos=NULL)
+install.packages("e1071")
+
+rm(list=ls())                # free up memory for the download of the data sets
+setwd("~/Cursos/Data Science/08 Practical Machine Learning/Projeto")
+library(knitr)
+library(caret)
+library(rpart)
+library(e1071)
+library(rattle)
+library(randomForest)
+library(corrplot)
+library(rpart.plot)
 ```
 
 ```r
 set.seed(12463)
+# set the URL for the download
+TrainingURL <- "http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+TestingURL  <- "http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
 
-training <- read.csv("pml-training.csv", stringsAsFactors=FALSE)
-training$classe <- as.factor(training$classe)
-training <- training[,-nearZeroVar(training)]
-training <- training[,-c(1,2,3,4,5,6,7)]
+# download the datasets
+NewTrain <- read.csv(url(TrainingURL))
+NewTest  <- read.csv(url(TestingURL))
+
+# create a partition with the training dataset 
+inTrain  <- createDataPartition(NewTrain$classe, p=0.7, list=FALSE)
+Training <- NewTrain[inTrain, ]
+Testing  <- NewTrain[-inTrain, ]
+
 ```
 
-
-There are many NA values in the data set, so we use KnnImpute method to impute those values. Besides, we try to standardize each features and use PCA to reduce features.
+## Remove variables with Nearly Zero Variance
 
 
 ```r
-inTrain <- createDataPartition(y=training$classe, p=0.75, list=FALSE)
-training <- training[inTrain,]
-testing <- training[-inTrain,]
+NZV <- nearZeroVar(Training)
+Training <- Training[, -NZV]
+Testing  <- Testing[, -NZV]
 
-preObj <- preProcess(training[,-length(training)],method=c("center", "scale", "knnImpute", "pca"), thresh=0.9)
-clean_data <- predict(preObj,training[,-length(training)])
 ```
 
-## Prediction
-
-After getting the clean data set from the above processing, we use Knn method to build model. We use testing data to evaluate the performance of our model. The accuracy is 0.9748. 
-
+## Remove variables that are mostly NA
 
 ```r
-modelFit <- train(training$classe ~.,data=clean_data, method="knn")
-test <- predict(preObj, testing[,-length(testing)])
-confusionMatrix(testing$classe, predict(modelFit,test))
-```
-
-```
-## Confusion Matrix and Statistics
-## 
-##           Reference
-## Prediction    A    B    C    D    E
-##          A 1019    3    8    2    0
-##          B   14  709   13    1    0
-##          C    6   10  607    7    2
-##          D    2    1   16  581    1
-##          E    0    5    2    0  677
-## 
-## Overall Statistics
-##                                        
-##                Accuracy : 0.975        
-##                  95% CI : (0.969, 0.98)
-##     No Information Rate : 0.282        
-##     P-Value [Acc > NIR] : <2e-16       
-##                                        
-##                   Kappa : 0.968        
-##  Mcnemar's Test P-Value : NA           
-## 
-## Statistics by Class:
-## 
-##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity             0.979    0.974    0.940    0.983    0.996
-## Specificity             0.995    0.991    0.992    0.994    0.998
-## Pos Pred Value          0.987    0.962    0.960    0.967    0.990
-## Neg Pred Value          0.992    0.994    0.987    0.997    0.999
-## Prevalence              0.282    0.198    0.175    0.160    0.184
-## Detection Rate          0.276    0.192    0.165    0.158    0.184
-## Detection Prevalence    0.280    0.200    0.171    0.163    0.186
-## Balanced Accuracy       0.987    0.982    0.966    0.988    0.997
+AllNA    <- sapply(Training, function(x) mean(is.na(x))) > 0.95
+Training <- Training[, AllNA==FALSE]
+Testing  <- Testing[, AllNA==FALSE]
 ```
 
 
-Finally, we load the testing data file and predict the reult as the following:
+## remove identification only variables (columns 1 to 5)
 
 ```r
-testing <- read.csv("pml-testing.csv", stringsAsFactors=FALSE)
-testing <- testing[,names(testing) %in% names(training)]
+Training <- Training[, -(1:5)]
+Testing  <- Testing[, -(1:5)]
 
-test <- predict(preObj, testing)
-predict_result <- predict(modelFit, test)
+correlationMatrix <- cor(Training[, -54])
+corrplot(correlationMatrix, order = "FPC", method = "color", type = "lower", 
+         tl.cex = 0.8, tl.col = rgb(0, 0, 0))
+```
+
+# model fit
+
+```r
+
+set.seed(12345)
+modFitDecisionTree <- rpart(classe ~ ., data=Training, method="class")
+fancyRpartPlot(modFitDecisionTree)
+```
+
+
+# prediction on Test dataset
+
+```r
+predictDecisionTree <- predict(modFitDecisionTree, newdata=Testing, type="class")
+confMatDecisionTree <- confusionMatrix(predictDecisionTree, Testing$classe)
+confMatDecisionTree
+```
+# plot matrix results
+
+```r
+plot(confMatDecisionTree$table, col = confMatDecisionTree$byClass, 
+     main = paste("Decision Tree - Accuracy =",
+                  round(confMatDecisionTree$overall['Accuracy'], 4)))
+```
+
+# model fit
+
+```r
+set.seed(12345)
+controlRandomForest <- trainControl(method="cv", number=3, verboseIter=FALSE)
+modleFitRandForest <- train(classe ~ ., data=Training, method="rf",
+                          trControl=controlRandomForest)
+modleFitRandForest$finalModel
+```
+
+# prediction on Test dataset
+
+```r
+predictRandomForest <- predict(modleFitRandForest, newdata=Testing)
+confMatRandomForest <- confusionMatrix(predictRandomForest, Testing$classe)
+confMatRandomForest
+```
+
+# plot matrix results
+
+```r
+plot(confMatRandomForest$table, col = confMatRandomForest$byClass, 
+     main = paste("Random Forest - Accuracy =",
+                  round(confMatRandomForest$overall['Accuracy'], 4)))
+
+```
+
+# model fit
+
+```r
+set.seed(12345)
+controlGBoostingM <- trainControl(method = "repeatedcv", number = 5, repeats = 1)
+modFitGBoostingM  <- train(classe ~ ., data=Training, method = "gbm",
+                    trControl = controlGBoostingM, verbose = FALSE)
+modFitGBoostingM$finalModel
+
+```
+
+# prediction on Test dataset
+
+```r
+predictGBoostingM <- predict(modFitGBoostingM, newdata=Testing)
+confMatGBoostingM <- confusionMatrix(predictGBoostingM, Testing$classe)
+confMatGBoostingM
+
+```
+
+# plot matrix results
+```r
+plot(confMatGBoostingM$table, col = confMatGBoostingM$byClass, 
+     main = paste("GBM - Accuracy =", round(confMatGBoostingM$overall['Accuracy'], 4)))
+
+predictTEST <- predict(modleFitRandForest, newdata=NewTest)
+predictTEST
+
 ```
