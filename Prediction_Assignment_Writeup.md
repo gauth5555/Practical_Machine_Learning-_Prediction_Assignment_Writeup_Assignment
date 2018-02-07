@@ -289,6 +289,14 @@ confMatGBoostingM
 ##Balanced Accuracy      0.9973   0.9866   0.9872   0.9905   0.9938
 ```
 
+## Applying the Selected Model to the Test Data
+
+The accuracy of the 3 regression modeling methods above are:
+
+    Decision Tree : 0.7217
+    Random Forest : 0.9971
+    GBM : 0.9866
+
 # Plotting matrix results
 ```r
 plot(confMatGBoostingM$table, col = confMatGBoostingM$byClass, 
